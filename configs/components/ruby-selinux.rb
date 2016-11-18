@@ -7,7 +7,7 @@ component "ruby-selinux" do |pkg, settings, platform|
     pkg.url "http://pkgs.fedoraproject.org/repo/pkgs/libselinux/libselinux-1.33.4.tgz/08762379de2242926854080dad649b67/libselinux-1.33.4.tgz"
   else
     pkg.version "2.0.94"
-    pkg.md5sum "f814c71fca5a85ebfeb81b57afed59db"
+    pkg.md5sum "544f75aab11c2af352facc51af12029f"
     pkg.url "https://raw.githubusercontent.com/wiki/SELinuxProject/selinux/files/releases/20100525/devel/libselinux-#{pkg.get_version}.tar.gz"
   end
 
@@ -29,15 +29,22 @@ component "ruby-selinux" do |pkg, settings, platform|
     ruby = "#{settings[:host_ruby]} -r#{settings[:datadir]}/doc/rbconfig.rb"
   end
 
+  if platform.srpm_only
+    cc = "/usr/bin/gcc"
+    system_include = "/usr/include"
+    pkg.environment "RUBY" => "/var/tmp/PUPPETBUILDROOT/opt/puppetlabs/puppet/bin/ruby"
+    ruby = "#{settings[:host_ruby]} -r rbconfig.rb"
+  end
+
   pkg.build do
     ["export RUBYHDRDIR=$(shell #{ruby} -e 'puts RbConfig::CONFIG[\"rubyhdrdir\"]')",
      "export VENDORARCHDIR=$(shell #{ruby} -e 'puts RbConfig::CONFIG[\"vendorarchdir\"]')",
      "export ARCHDIR=$${RUBYHDRDIR}/$(shell #{ruby} -e 'puts RbConfig::CONFIG[\"arch\"]')",
-     "export INCLUDESTR=\"-I#{settings[:includedir]} -I$${RUBYHDRDIR} -I$${ARCHDIR}\"",
+     "export INCLUDESTR=\"-I #{settings[:includedir]} -I $${RUBYHDRDIR} -I$${ARCHDIR}\"",
      "cp -pr src/{selinuxswig_ruby.i,selinuxswig.i}  .",
-     "swig -Wall -ruby #{system_include} -o selinuxswig_ruby_wrap.c -outdir ./ selinuxswig_ruby.i",
-     "#{cc} $${INCLUDESTR} #{system_include} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -fPIC -DSHARED -c -o selinuxswig_ruby_wrap.lo selinuxswig_ruby_wrap.c",
-     "#{cc} $${INCLUDESTR} #{system_include} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -shared -o _rubyselinux.so selinuxswig_ruby_wrap.lo -lselinux -Wl,-soname,_rubyselinux.so"]
+     "swig -Wall -ruby -I#{system_include} -o selinuxswig_ruby_wrap.c -outdir ./ selinuxswig_ruby.i",
+     "#{cc} $${INCLUDESTR} -I #{system_include} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -fPIC -DSHARED -c -o selinuxswig_ruby_wrap.lo selinuxswig_ruby_wrap.c",
+     "#{cc} $${INCLUDESTR} -I #{system_include} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -shared -o _rubyselinux.so selinuxswig_ruby_wrap.lo -lselinux -Wl,-soname,_rubyselinux.so"]
   end
 
   pkg.install do

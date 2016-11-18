@@ -20,7 +20,7 @@ else
   fi
 fi
 
-RUNTIMEDIR=/opt/puppetlabs/puppet/lib
+RUNTIMEDIR=$PREFIX/opt/puppetlabs/puppet/lib
 
 mkdir -p "$RUNTIMEDIR"
 

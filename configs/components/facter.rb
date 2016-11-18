@@ -165,6 +165,9 @@ component "facter" do |pkg, settings, platform|
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=#{settings[:tools_root]}/pl-build-toolchain.cmake"
     special_flags = "-DCMAKE_INSTALL_PREFIX=#{settings[:facter_root]} \
                      -DRUBY_LIB_INSTALL=#{settings[:facter_root]}/lib "
+  elsif platform.srpm_only
+    toolchain = ""
+    cmake = "/usr/bin/cmake3"
   else
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=/opt/pl-build-tools/pl-build-toolchain.cmake"
     cmake = "/opt/pl-build-tools/bin/cmake"
@@ -195,7 +198,7 @@ component "facter" do |pkg, settings, platform|
         -DCMAKE_PREFIX_PATH=#{settings[:prefix]} \
         #{special_flags} \
         -DBOOST_STATIC=ON \
-        -DYAMLCPP_STATIC=ON \
+        -DYAMLCPP_STATIC=OFF \
         -DWITHOUT_CURL=#{skip_curl} \
         -DWITHOUT_BLKID=#{skip_blkid} \
         -DWITHOUT_JRUBY=#{skip_jruby} \
@@ -207,7 +210,7 @@ component "facter" do |pkg, settings, platform|
 
   # Make test will explode horribly in a cross-compile situation
   # Tests will be skipped on AIX until they are expected to pass
-  if platform.is_cross_compiled? || platform.is_aix?
+  if platform.is_cross_compiled? || platform.is_aix? || platform.srpm_only
     test = ":"
   else
     test = "#{make} test ARGS=-V"
@@ -231,7 +234,7 @@ component "facter" do |pkg, settings, platform|
     ldd = "ldd"
   end
 
-  unless platform.is_windows? || platform.is_cross_compiled_linux? || platform.architecture == 'sparc'
+  unless platform.is_windows? || platform.is_cross_compiled_linux? || platform.architecture == 'sparc' || platform.srpm_only
     pkg.check do
       [
         # Check that we're not linking against system libstdc++ and libgcc_s

@@ -1,8 +1,13 @@
 component "cpp-pcp-client" do |pkg, settings, platform|
   pkg.load_from_json('configs/components/cpp-pcp-client.json')
 
-  cmake = "/opt/pl-build-tools/bin/cmake"
-  toolchain = "-DCMAKE_TOOLCHAIN_FILE=/opt/pl-build-tools/pl-build-toolchain.cmake"
+  if platform.srpm_only
+    cmake = "/usr/bin/cmake3"
+    toolchain = ""
+  else
+    cmake = "/opt/pl-build-tools/bin/cmake"
+    toolchain = "-DCMAKE_TOOLCHAIN_FILE=/opt/pl-build-tools/pl-build-toolchain.cmake"
+  end
   make = platform[:make]
 
   if platform.is_windows?

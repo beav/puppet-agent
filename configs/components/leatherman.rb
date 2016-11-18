@@ -3,6 +3,9 @@ component "leatherman" do |pkg, settings, platform|
 
   make = platform[:make]
 
+  pkg.apply_patch "resources/patches/leatherman/use_icu.patch"
+
+
   if platform.is_osx?
     pkg.build_requires "cmake"
     pkg.build_requires "boost"
@@ -67,6 +70,9 @@ component "leatherman" do |pkg, settings, platform|
 
     cmake = "C:/ProgramData/chocolatey/bin/cmake.exe -G \"MinGW Makefiles\""
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=#{settings[:tools_root]}/pl-build-toolchain.cmake"
+  elsif platform.srpm_only
+    toolchain = ""
+    cmake = "/usr/bin/cmake3"
   else
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=/opt/pl-build-tools/pl-build-toolchain.cmake"
     cmake = "/opt/pl-build-tools/bin/cmake"
@@ -88,6 +94,7 @@ component "leatherman" do |pkg, settings, platform|
         -DLEATHERMAN_SHARED=TRUE \
         #{special_flags} \
         -DBOOST_STATIC=ON \
+        -DLEATHERMAN_USE_ICU=ON \
         -DLEATHERMAN_USE_CURL=#{use_curl} \
         ."]
   end

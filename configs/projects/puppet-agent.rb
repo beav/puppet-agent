@@ -64,6 +64,16 @@ project "puppet-agent" do |proj|
     proj.setting(:logdir, "/var/log/puppetlabs")
     proj.setting(:piddir, "/var/run/puppetlabs")
     proj.setting(:tmpfilesdir, "/usr/lib/tmpfiles.d")
+    # if we are building an srpm, inject our buildroot prefix
+    if platform.srpm_only
+      puts "SRPM ONLY"
+      buildroot = "/var/tmp/PUPPETBUILDROOT"
+      proj.setting(:install_root, File.join(buildroot, proj.install_root))
+      proj.setting(:sysconfdir, File.join(buildroot, proj.sysconfdir))
+      proj.setting(:logdir, File.join(buildroot, proj.logdir))
+      proj.setting(:piddir, File.join(buildroot, proj.piddir))
+      proj.setting(:tmpfilesdir, File.join(buildroot, proj.tmpfilesdir))
+    end
   end
 
   proj.setting(:miscdir, File.join(proj.install_root, "misc"))
@@ -275,5 +285,6 @@ project "puppet-agent" do |proj|
   # Something like https://www.openssl.org/source/openssl-1.0.0r.tar.gz gets
   # rewritten as
   # http://buildsources.delivery.puppetlabs.net/openssl-1.0.0r.tar.gz
-  proj.register_rewrite_rule 'http', 'http://buildsources.delivery.puppetlabs.net'
+#  proj.register_rewrite_rule 'http', 'file:///tmp/puppet-sources/'
+#
 end

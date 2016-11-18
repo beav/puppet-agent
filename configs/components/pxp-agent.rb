@@ -46,6 +46,9 @@ component "pxp-agent" do |pkg, settings, platform|
     special_flags = " -DCMAKE_INSTALL_PREFIX=#{settings[:pxp_root]} "
     cmake = "C:/ProgramData/chocolatey/bin/cmake.exe -G \"MinGW Makefiles\""
     toolchain = "-DCMAKE_TOOLCHAIN_FILE=#{settings[:tools_root]}/pl-build-toolchain.cmake"
+  elsif platform.srpm_only
+    toolchain = ""
+    cmake = "/usr/bin/cmake3"
   else
     pkg.build_requires "pl-gcc"
     pkg.build_requires "pl-cmake"
@@ -96,7 +99,7 @@ component "pxp-agent" do |pkg, settings, platform|
   case platform.servicetype
   when "systemd"
     pkg.install_service "ext/systemd/pxp-agent.service", "ext/redhat/pxp-agent.sysconfig"
-    pkg.install_configfile "ext/systemd/pxp-agent.logrotate", "/etc/logrotate.d/pxp-agent"
+    pkg.install_configfile "ext/systemd/pxp-agent.logrotate", File.join(platform.srpm_only ? "/var/tmp/PUPPETBUILDROOT" : "", "/etc/logrotate.d/pxp-agent")
     if platform.is_deb?
       pkg.add_postinstall_action ["install"], ["systemctl disable pxp-agent.service >/dev/null || :"]
     end
@@ -109,7 +112,7 @@ component "pxp-agent" do |pkg, settings, platform|
     elsif platform.is_rpm?
       pkg.install_service "ext/redhat/pxp-agent.init", "ext/redhat/pxp-agent.sysconfig"
     end
-    pkg.install_configfile "ext/pxp-agent.logrotate", "/etc/logrotate.d/pxp-agent"
+    pkg.install_configfile "ext/pxp-agent.logrotate", File.join(platform.srpm_only ? "/var/tmp/PUPPETBUILDROOT" : "", "/etc/logrotate.d/pxp-agent")
   when "launchd"
     pkg.install_service "ext/osx/pxp-agent.plist", nil, "com.puppetlabs.pxp-agent"
   when "smf"

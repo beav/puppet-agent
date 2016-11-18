@@ -27,9 +27,15 @@ component "puppet-ca-bundle" do |pkg, settings, platform|
     openssl_cmd = "/usr/bin/openssl"
   end
 
-  install_commands = [
-    "#{platform[:make]} install OPENSSL=#{openssl_cmd} USER=0 GROUP=0 DESTDIR=#{File.join(settings[:prefix], 'ssl')}"
-  ]
+  if platform.srpm_only
+    install_commands = [
+      "#{platform[:make]} install OPENSSL=#{openssl_cmd} DESTDIR=#{File.join(settings[:prefix], 'ssl')}"
+    ]
+  else
+    install_commands = [
+      "#{platform[:make]} install OPENSSL=#{openssl_cmd} USER=0 GROUP=0 DESTDIR=#{File.join(settings[:prefix], 'ssl')}"
+    ]
+  end
 
   # We need to ensure we install the keystore on platforms which have java available
   if java_available
